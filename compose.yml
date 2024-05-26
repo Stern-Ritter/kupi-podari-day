@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SERVER_PORT: 3000
+      SPRING_DATASOURCE_URL: 'jdbc:postgresql://db:5432/kupipodariday'
+      SPRING_DATASOURCE_USERNAME: 'postgres'
+      SPRING_DATASOURCE_PASSWORD: 'postgres'
+      SIGNING_KEY: 'GZp3cS3R4VG9uRzNhU3lTcDkwQkRZcUt1UV9NVnFhZGJfbU1GR0hVZE1iUUpvaw=='
+    ports:
+      - '4000:3000'
+    networks:
+      - internal-network
+      - internet
+    depends_on:
+      - db
+    restart: on-failure
+
+  frontend:
+    container_name: frontend
+    build: ./frontend
+    image: frontend:prod
+    ports:
+      - '8081:80'
+    depends_on:
+      - backend
+    restart: on-failure
+
+  db:
+    image: 'postgres:latest'
+    environment:
+      POSTGRES_DB: kupipodariday
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    networks:
+      - internal-network
+    restart: on-failure
+
+networks:
+  internal-network:
+    driver: bridge
+    internal: true
+  internet:
+    driver: bridge
+
+volumes:
+  db-data:
